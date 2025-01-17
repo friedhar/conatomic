@@ -16,7 +16,6 @@ impl<T> RingBuffer<T> {
 
     fn push(&self, x: T) -> Option<()> {
         let tail = self.tail.load(Ordering::Relaxed);
-        dbg!(tail);
         let new_tail = tail + 1;
 
         if new_tail== self.head.load(Ordering::Relaxed) {
@@ -44,7 +43,26 @@ impl<T> RingBuffer<T> {
 
 #[cfg(test)]
 mod tests {
+    use std::{hint::black_box, time::Instant};
+
     use super::RingBuffer;
+
+
+    #[test]
+    fn benchmark_wps() {
+        let n = 100_000_000;
+        let start_t = Instant::now();
+        let mut rb: RingBuffer<u8> = RingBuffer::new(32);
+
+        for _ in 0..n {
+            black_box(rb.push(2));
+        }
+
+        let took = (start_t.elapsed().as_millis() as f64) / 1000.0;
+        dbg!(took);
+        let wps = n as f64 / took;
+        dbg!(&wps);
+    }
 
     #[test]
     fn test_rb_0() {
