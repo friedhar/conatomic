@@ -8,13 +8,13 @@ pub struct RingBuffer<T> {
 }
 
 impl<T> RingBuffer<T> {
-    fn new(capacity: usize) -> RingBuffer<T> {
+    pub fn new(capacity: usize) -> RingBuffer<T> {
         let buf = (0..capacity).map(|_| UnsafeCell::new(MaybeUninit::uninit())).collect(); 
 
         RingBuffer { tail: AtomicUsize::new(0), head: AtomicUsize::new(0), capacity, buf }
     }
 
-    fn push(&self, x: T) -> Option<()> {
+    pub fn push(&self, x: T) -> Option<()> {
         let tail = self.tail.load(Ordering::Relaxed);
         let new_tail = tail + 1;
 
@@ -27,7 +27,7 @@ impl<T> RingBuffer<T> {
         Some(())
     }
 
-    fn pop(&self) -> Option<T> {
+    pub fn pop(&self) -> Option<T> {
         let head= self.head.load(Ordering::Relaxed);
         dbg!(head);
         let new_head= head+ 1;
@@ -52,7 +52,7 @@ mod tests {
     fn benchmark_wps() {
         let n = 100_000_000;
         let start_t = Instant::now();
-        let mut rb: RingBuffer<u8> = RingBuffer::new(32);
+        let mut rb: RingBuffer<u8> = RingBuffer::new(1024);
 
         for _ in 0..n {
             black_box(rb.push(2));
