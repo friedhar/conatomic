@@ -4,4 +4,6 @@
 * RingBuffer (lock-free, highly optmized)
 * LeftRight
 * SPSC Queue
-* MPMC Queue
+* Concurrent, Lock Free Hashmap
+* mmap'd RingBuffer
+
