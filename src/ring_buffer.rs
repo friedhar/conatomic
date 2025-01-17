@@ -19,6 +19,10 @@ impl<T> RingBuffer<T> {
         dbg!(tail);
         let new_tail = tail + 1;
 
+        if new_tail== self.head.load(Ordering::Relaxed) {
+            return None;
+        }
+
         unsafe {*self.buf.get_unchecked(tail % self.capacity).get() = MaybeUninit::new(x);}
         self.tail.swap(new_tail,Ordering::Acquire);
         Some(())
@@ -28,6 +32,10 @@ impl<T> RingBuffer<T> {
         let head= self.head.load(Ordering::Relaxed);
         dbg!(head);
         let new_head= head+ 1;
+
+        if head == self.tail.load(Ordering::Relaxed) {
+            return None;
+        }
 
         self.head.swap(new_head,Ordering::Acquire);
         Some(unsafe {((self.buf.get_unchecked(head% self.capacity).clone().get().read().assume_init()))})
@@ -42,15 +50,14 @@ mod tests {
     fn test_rb_0() {
         let mut rb : RingBuffer<u8>= RingBuffer::new(32);
         rb.push(1);
-        rb.push(1);
-        rb.push(1);
-        rb.push(1);
-        dbg!(rb.pop());
-        dbg!(rb.pop());
-        dbg!(rb.pop());
-        dbg!(rb.pop());
-        dbg!(rb.pop());
-        dbg!(rb.pop());
+        rb.push(12);
+        rb.push(31);
+        rb.push(128);
 
-    }
+        assert_eq!(rb.pop(), Some(1));
+        assert_eq!(rb.pop(), Some(12));
+        assert_eq!(rb.pop(), Some(31));
+        assert_eq!(rb.pop(), Some(128));
+        assert_eq!(rb.pop(), None);
+      }
 }
