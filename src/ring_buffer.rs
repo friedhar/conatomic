@@ -50,9 +50,9 @@ mod tests {
 
     #[test]
     fn benchmark_wps() {
-        let n = 100_000_000;
+        let n = 1_000_000;
         let start_t = Instant::now();
-        let mut rb: RingBuffer<u8> = RingBuffer::new(1024);
+        let rb: RingBuffer<u8> = RingBuffer::new(1024);
 
         for _ in 0..n {
             black_box(rb.push(2));

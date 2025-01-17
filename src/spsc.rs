@@ -54,6 +54,8 @@ mod tests {
         assert_eq!(receiver.try_recv(), Some(3));
         assert_eq!(receiver.try_recv(), Some(4));
         assert_eq!(receiver.try_recv(), None);
+        assert_eq!(receiver.try_recv(), None);
+        assert_eq!(receiver.try_recv(), None);
 
     }
 }
