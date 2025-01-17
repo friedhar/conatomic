@@ -1,4 +1,4 @@
-use std::{cell::UnsafeCell, mem::MaybeUninit, path::PathBuf, sync::atomic::{AtomicUsize, Ordering}};
+use std::{cell::UnsafeCell, mem::MaybeUninit, sync::atomic::{AtomicUsize, Ordering}};
 
 pub struct RingBuffer<T> {
     tail: AtomicUsize,
@@ -37,7 +37,7 @@ impl<T> RingBuffer<T> {
         }
 
         self.head.swap(new_head,Ordering::Acquire);
-        Some(unsafe {((self.buf.get_unchecked(head% self.capacity).clone().get().read().assume_init()))})
+        Some(unsafe {self.buf.get_unchecked(head% self.capacity).get().read().assume_init()})
     }
 }
 
@@ -66,7 +66,7 @@ mod tests {
 
     #[test]
     fn test_rb_0() {
-        let mut rb : RingBuffer<u8>= RingBuffer::new(32);
+        let rb : RingBuffer<u8>= RingBuffer::new(32);
         rb.push(1);
         rb.push(12);
         rb.push(31);
