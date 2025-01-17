@@ -38,3 +38,22 @@ pub fn spsc<T>() -> (Sender<T>, Receiver<T>) {
     let rb_receiver = Arc::clone(&rb_sender);
     (Sender::new(rb_sender), Receiver::new(rb_receiver))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::spsc;
+
+    #[test]
+    fn test_spsc_0() {
+        let (mut sender, mut receiver) = spsc::<u8>();
+
+        sender.send(2).unwrap();
+        sender.send(3).unwrap();
+        sender.send(4).unwrap();
+        assert_eq!(receiver.try_recv(), Some(2));
+        assert_eq!(receiver.try_recv(), Some(3));
+        assert_eq!(receiver.try_recv(), Some(4));
+        assert_eq!(receiver.try_recv(), None);
+
+    }
+}
