@@ -7,3 +7,4 @@
 * Concurrent, Lock Free Hashmap
 * mmap'd RingBuffer
 
+Greater plans: Make it the std Rust should have had, paid, high quality, maintained, fast, with support for businesses.
