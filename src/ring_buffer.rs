@@ -29,7 +29,7 @@ impl<T> RingBuffer<T> {
         let tail = self.tail.load(Ordering::Relaxed);
         let new_tail = tail + 1;
 
-        if new_tail == self.head.load(Ordering::Relaxed) {
+        if new_tail % self.capacity == self.head.load(Ordering::Relaxed) % self.capacity {
             return None;
         }
 
@@ -45,7 +45,7 @@ impl<T> RingBuffer<T> {
         dbg!(head);
         let new_head = head + 1;
 
-        if head == self.tail.load(Ordering::Relaxed) {
+        if head % self.capacity == self.tail.load(Ordering::Relaxed) % self.capacity {
             return None;
         }
 
@@ -70,6 +70,7 @@ mod tests {
 
     // Benchmark according to
     // https://rigtorp.se/ringbuffer/
+    // RingBuffer::size = 100k, insert 100m elements across two concurrent threads
     #[test]
     fn benchmark_wps() {
         let n: usize = 100_000_000;
@@ -81,12 +82,12 @@ mod tests {
 
         let t1 = std::thread::spawn(move || {
             for i in 0..n {
-                black_box(rb.push(i as u8));
+                black_box(rb.push(i as u8)).unwrap();
             }
         });
         let t2 = std::thread::spawn(move || {
             for i in 0..n {
-                black_box(rb2.push(i as u8));
+                black_box(rb2.push(i as u8).unwrap());
             }
         });
 
@@ -95,7 +96,18 @@ mod tests {
         let took = (start_t.elapsed().as_millis() as f64) / 1000.0;
         println!("took: {}s", took);
         let wps = n as f64 / took;
-        println!("wps: {:#.2}/s", wps);
+        println!(
+            "wps: {}/s",
+            (wps as u32)
+                .to_string()
+                .as_bytes()
+                .rchunks(3)
+                .rev()
+                .map(std::str::from_utf8)
+                .collect::<Result<Vec<&str>, _>>()
+                .unwrap()
+                .join("_")
+        );
     }
 
     #[test]
