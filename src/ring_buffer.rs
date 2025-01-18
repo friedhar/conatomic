@@ -4,9 +4,11 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
+use crate::cache_padded::CachePadded;
+
 pub struct RingBuffer<T> {
-    tail: AtomicUsize,
-    head: AtomicUsize,
+    tail: CachePadded<AtomicUsize>,
+    head: CachePadded<AtomicUsize>,
     capacity: usize,
     buf: Box<[UnsafeCell<MaybeUninit<T>>]>,
 }
@@ -18,8 +20,8 @@ impl<T> RingBuffer<T> {
             .collect();
 
         RingBuffer {
-            tail: AtomicUsize::new(0),
-            head: AtomicUsize::new(0),
+            tail: CachePadded::new(AtomicUsize::new(0)),
+            head: CachePadded::new(AtomicUsize::new(0)),
             capacity,
             buf,
         }
