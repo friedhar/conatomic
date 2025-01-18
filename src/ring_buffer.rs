@@ -60,26 +60,42 @@ impl<T> RingBuffer<T> {
     }
 }
 
+unsafe impl<T> Sync for RingBuffer<T> {}
+
 #[cfg(test)]
 mod tests {
-    use std::{hint::black_box, time::Instant};
+    use std::{hint::black_box, sync::Arc, time::Instant};
 
     use super::RingBuffer;
 
+    // Benchmark according to
+    // https://rigtorp.se/ringbuffer/
     #[test]
     fn benchmark_wps() {
-        let n = 1_000_000;
-        let start_t = Instant::now();
-        let rb: RingBuffer<u8> = RingBuffer::new(1024);
+        let n: usize = 100_000_000;
+        let rb: RingBuffer<u8> = RingBuffer::new(100_000);
+        let rb = Arc::new(rb);
+        let rb2 = Arc::clone(&rb);
 
-        for _ in 0..n {
-            black_box(rb.push(2));
-        }
+        let start_t = Instant::now();
+
+        let t1 = std::thread::spawn(move || {
+            for i in 0..n {
+                black_box(rb.push(i as u8));
+            }
+        });
+        let t2 = std::thread::spawn(move || {
+            for i in 0..n {
+                black_box(rb2.push(i as u8));
+            }
+        });
+
+        while !(t1.is_finished() && t2.is_finished()) {}
 
         let took = (start_t.elapsed().as_millis() as f64) / 1000.0;
-        dbg!(took);
+        println!("took: {}s", took);
         let wps = n as f64 / took;
-        dbg!(&wps);
+        println!("wps: {:#.2}/s", wps);
     }
 
     #[test]
