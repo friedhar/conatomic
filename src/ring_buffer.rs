@@ -31,9 +31,9 @@ impl<T> RingBuffer<T> {
         let tail = self.tail.load(Ordering::Relaxed);
         let new_tail = tail + 1;
 
-        if new_tail % self.capacity == self.head.load(Ordering::Relaxed) % self.capacity {
-            return None;
-        }
+        // if new_tail % self.capacity == self.head.load(Ordering::Relaxed) % self.capacity {
+        //     return None;
+        // }
 
         unsafe {
             *self.buf.get_unchecked(tail % self.capacity).get() = MaybeUninit::new(x);
