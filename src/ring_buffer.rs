@@ -1,43 +1,62 @@
-use std::{cell::UnsafeCell, mem::MaybeUninit, sync::atomic::{AtomicUsize, Ordering}};
+use std::{
+    cell::UnsafeCell,
+    mem::MaybeUninit,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 pub struct RingBuffer<T> {
     tail: AtomicUsize,
     head: AtomicUsize,
     capacity: usize,
-    buf: Box<[UnsafeCell<MaybeUninit<T>>]>
+    buf: Box<[UnsafeCell<MaybeUninit<T>>]>,
 }
 
 impl<T> RingBuffer<T> {
     pub fn new(capacity: usize) -> RingBuffer<T> {
-        let buf = (0..capacity).map(|_| UnsafeCell::new(MaybeUninit::uninit())).collect(); 
+        let buf = (0..capacity)
+            .map(|_| UnsafeCell::new(MaybeUninit::uninit()))
+            .collect();
 
-        RingBuffer { tail: AtomicUsize::new(0), head: AtomicUsize::new(0), capacity, buf }
+        RingBuffer {
+            tail: AtomicUsize::new(0),
+            head: AtomicUsize::new(0),
+            capacity,
+            buf,
+        }
     }
 
     pub fn push(&self, x: T) -> Option<()> {
         let tail = self.tail.load(Ordering::Relaxed);
         let new_tail = tail + 1;
 
-        if new_tail== self.head.load(Ordering::Relaxed) {
+        if new_tail == self.head.load(Ordering::Relaxed) {
             return None;
         }
 
-        unsafe {*self.buf.get_unchecked(tail % self.capacity).get() = MaybeUninit::new(x);}
-        self.tail.swap(new_tail,Ordering::Acquire);
+        unsafe {
+            *self.buf.get_unchecked(tail % self.capacity).get() = MaybeUninit::new(x);
+        }
+        self.tail.swap(new_tail, Ordering::Acquire);
         Some(())
     }
 
     pub fn pop(&self) -> Option<T> {
-        let head= self.head.load(Ordering::Relaxed);
+        let head = self.head.load(Ordering::Relaxed);
         dbg!(head);
-        let new_head= head+ 1;
+        let new_head = head + 1;
 
         if head == self.tail.load(Ordering::Relaxed) {
             return None;
         }
 
-        self.head.swap(new_head,Ordering::Acquire);
-        Some(unsafe {self.buf.get_unchecked(head% self.capacity).get().read().assume_init()})
+        self.head.swap(new_head, Ordering::Acquire);
+        Some(unsafe {
+            self.buf
+                .get_unchecked(head % self.capacity)
+                .get()
+                .read()
+                .assume_init()
+        })
     }
 }
 
@@ -46,7 +65,6 @@ mod tests {
     use std::{hint::black_box, time::Instant};
 
     use super::RingBuffer;
-
 
     #[test]
     fn benchmark_wps() {
@@ -65,8 +83,27 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_ns_per_write() {
+        let n = 1_000;
+        let rb: RingBuffer<u8> = RingBuffer::new(1024);
+        let mut tooks: Vec<f64> = Vec::with_capacity(n);
+
+        for _ in 0..n {
+            let start_t = Instant::now();
+            black_box(rb.push(2));
+
+            let took = start_t.elapsed().as_nanos() as f64;
+            tooks.push(took);
+        }
+
+        let avg_took = tooks.iter().sum::<f64>() / tooks.len() as f64;
+
+        println!("avg took: {}ns", &avg_took);
+    }
+
+    #[test]
     fn test_rb_0() {
-        let rb : RingBuffer<u8>= RingBuffer::new(32);
+        let rb: RingBuffer<u8> = RingBuffer::new(32);
         rb.push(1);
         rb.push(12);
         rb.push(31);
@@ -77,5 +114,5 @@ mod tests {
         assert_eq!(rb.pop(), Some(31));
         assert_eq!(rb.pop(), Some(128));
         assert_eq!(rb.pop(), None);
-      }
+    }
 }
