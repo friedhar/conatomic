@@ -9,7 +9,12 @@ use crate::cache_padded::CachePadded;
 pub struct RingBuffer<T> {
     tail: CachePadded<AtomicUsize>,
     head: CachePadded<AtomicUsize>,
+
+    cached_tail: UnsafeCell<usize>,
+    cached_head: UnsafeCell<usize>,
+
     capacity: usize,
+
     buf: Box<[UnsafeCell<MaybeUninit<T>>]>,
 }
 
@@ -22,6 +27,10 @@ impl<T> RingBuffer<T> {
         RingBuffer {
             tail: CachePadded::new(AtomicUsize::new(0)),
             head: CachePadded::new(AtomicUsize::new(0)),
+
+            cached_tail: UnsafeCell::new(0),
+            cached_head: UnsafeCell::new(0),
+
             capacity,
             buf,
         }
