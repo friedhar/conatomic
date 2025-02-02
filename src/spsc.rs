@@ -5,15 +5,15 @@ use crate::ring_buffer::RingBuffer;
 const DEFAULT_CAPACITY: usize = 1024;
 
 pub struct Sender<T> {
-    rb: Arc<RingBuffer<T>>
+    rb: Arc<RingBuffer<T>>,
 }
 
 pub struct Receiver<T> {
-    rb: Arc<RingBuffer<T>>
+    rb: Arc<RingBuffer<T>>,
 }
 
 impl<T> Sender<T> {
-    pub(crate) fn new(rb: Arc<RingBuffer<T>>)  -> Sender<T> {
+    pub(crate) fn new(rb: Arc<RingBuffer<T>>) -> Sender<T> {
         Sender { rb }
     }
 
@@ -23,8 +23,8 @@ impl<T> Sender<T> {
 }
 
 impl<T> Receiver<T> {
-    pub(crate) fn new(rb: Arc<RingBuffer<T>>)  ->Receiver<T> {
-        Receiver{ rb }
+    pub(crate) fn new(rb: Arc<RingBuffer<T>>) -> Receiver<T> {
+        Receiver { rb }
     }
 
     fn try_recv(&mut self) -> Option<T> {
