@@ -4,4 +4,6 @@
 !Cargo.toml
 !Cargo.lock
 !.gitignore
+!fuzz/
+!fuzz/**
 !README.md
