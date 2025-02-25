@@ -1,6 +1,5 @@
-use std::sync::Arc;
-
 use crate::ring_buffer::RingBuffer;
+use std::sync::Arc;
 
 const DEFAULT_CAPACITY: usize = 1024;
 
