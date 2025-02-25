@@ -16,7 +16,7 @@ impl<T> Sender<T> {
         Sender { rb }
     }
 
-    fn send(&mut self, x: T) -> Option<()> {
+    fn send(&self, x: T) -> Option<()> {
         self.rb.push(x)
     }
 }
@@ -31,7 +31,7 @@ impl<T> Receiver<T> {
     }
 }
 
-pub fn spsc<T>() -> (Sender<T>, Receiver<T>) {
+pub fn mpmc<T>() -> (Sender<T>, Receiver<T>) {
     let rb: RingBuffer<T> = RingBuffer::new(DEFAULT_CAPACITY);
     let rb_sender = Arc::new(rb);
     let rb_receiver = Arc::clone(&rb_sender);
@@ -40,11 +40,11 @@ pub fn spsc<T>() -> (Sender<T>, Receiver<T>) {
 
 #[cfg(test)]
 mod tests {
-    use super::spsc;
+    use super::mpmc;
 
     #[test]
     fn test_spsc_0() {
-        let (mut sender, mut receiver) = spsc::<u8>();
+        let (mut sender, mut receiver) = mpmc::<u8>();
 
         sender.send(2).unwrap();
         sender.send(3).unwrap();

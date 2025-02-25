@@ -1,4 +1,3 @@
-mod cache_padded;
-mod paramap;
-mod ring_buffer;
-mod spsc;
+pub mod cache_padded;
+pub mod mpmc;
+pub mod ring_buffer;
