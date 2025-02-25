@@ -1,13 +1,8 @@
 # Conatomic - A Low Latency Concurrency Libary
 
-Conatomic currently is a WIP and should currently not be used in production.
+## Engineering Philosophy
+The main philosophy behind conatomic is to 
+* Minimize Locks, Of Any Kind.
+* Build all primitives around a small number of core, custom made, highly optimized data structures.
+* Minimize dependencies, even in the expense of short term increased latency - to have full fine grained control.
 
-## Core
-At the heart of the library exists a highly optimized ring buffer, used in many of the underlying data structures. 
-it incorporates moderately novel, rarely known technicques - such as caching of read write atomic indicies - to save up on cache level transfers.
-
-## SPSC
-*Outperforming* the Rust standard impl by up to **2x**, A relatively thin implementation on top of the Ring Buffer - `conatomic` provides a Single-Consumer-Single-Producer general pourpuse channel.
-
-## ParaMap
-WIP
